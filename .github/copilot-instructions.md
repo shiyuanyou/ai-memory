@@ -49,6 +49,7 @@ docs/
 | `ai-memory config show` | Show effective LLM config or defaults |
 | `ai-memory config set ...` | Set OpenAI-compatible LLM URL, model, and key env var |
 | `ai-memory learn [<file>|-]` | Learn from a file or stdin and update memory files via LLM |
+| `ai-memory learn --dry-run [<file>|-]` | Preview learn updates without writing files |
 
 ## Design Principles (from `docs/core-idea.md`)
 
@@ -150,6 +151,7 @@ Examples:
 ```bash
 ai-memory learn meeting-notes.md
 echo "I now use bun instead of npm for side projects" | ai-memory learn
+echo "Project update..." | ai-memory learn --dry-run
 ```
 
 AI agents should prefer concise, durable facts over transient notes. Do not write chat transcripts verbatim into memory.

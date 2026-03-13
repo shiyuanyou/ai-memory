@@ -372,9 +372,17 @@ config)
   ;;
 
 learn)
-  if [[ -n "$2" && "$2" != "-" ]]; then
-    [[ ! -f "$2" ]] && echo "Error: file not found: $2" >&2 && exit 1
-    input="$(cat "$2")"
+  dry_run=0
+  input_arg="$2"
+
+  if [[ "$2" == "--dry-run" ]]; then
+    dry_run=1
+    input_arg="$3"
+  fi
+
+  if [[ -n "$input_arg" && "$input_arg" != "-" ]]; then
+    [[ ! -f "$input_arg" ]] && echo "Error: file not found: $input_arg" >&2 && exit 1
+    input="$(cat "$input_arg")"
   else
     input="$(cat)"
   fi
@@ -416,6 +424,10 @@ ${input}"
     exit 0
   fi
 
+  if [[ "$dry_run" -eq 1 ]]; then
+    echo "Dry run mode: no files will be modified."
+  fi
+
   for i in $(seq 0 $((n - 1))); do
     file="$(jq -r ".updates[$i].file" <<< "$response")"
     action="$(jq -r ".updates[$i].action" <<< "$response")"
@@ -441,6 +453,12 @@ ${input}"
     fi
 
     target="$ROOT/$file"
+
+    if [[ "$dry_run" -eq 1 ]]; then
+      echo "  [dry-run] $action → $file"
+      continue
+    fi
+
     mkdir -p "$(dirname "$target")"
     case "$action" in
     append)
@@ -469,5 +487,6 @@ ${input}"
   echo "  ai-memory config show"
   echo "  ai-memory config set LLM_URL=... LLM_MODEL=... LLM_KEY_ENV=..."
   echo "  ai-memory learn [<file>|-]  (use - or omit for stdin)"
+  echo "  ai-memory learn --dry-run [<file>|-]"
   ;;
 esac
