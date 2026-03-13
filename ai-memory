@@ -317,16 +317,16 @@ ${input}"
   ;;
 
 *)
-  echo "memory commands:"
-  echo "  memory context"
-  echo "  memory infra"
-  echo "  memory projects"
-  echo "  memory project <name>"
-  echo "  memory new-project <name>"
-  echo "  memory search <keyword>"
-  echo "  memory inject <tool>    (claude | opencode | codex)"
-  echo "  memory config show"
-  echo "  memory config set LLM_URL=... LLM_MODEL=... LLM_KEY_ENV=..."
-  echo "  memory learn [<file>|-]  (use - or omit for stdin)"
+  echo "ai-memory commands:"
+  echo "  ai-memory context"
+  echo "  ai-memory infra"
+  echo "  ai-memory projects"
+  echo "  ai-memory project <name>"
+  echo "  ai-memory new-project <name>"
+  echo "  ai-memory search <keyword>"
+  echo "  ai-memory inject <tool>    (claude | opencode | codex)"
+  echo "  ai-memory config show"
+  echo "  ai-memory config set LLM_URL=... LLM_MODEL=... LLM_KEY_ENV=..."
+  echo "  ai-memory learn [<file>|-]  (use - or omit for stdin)"
   ;;
 esac
