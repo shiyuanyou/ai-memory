@@ -25,6 +25,16 @@ Rules for AI assistants:
 - Use project files (`projects/*.md`) as the only source for project-specific memory.
 
 
+Project identity (current repository):
+- Name: ai-memory
+- Goal: Provide a lightweight developer-memory layer for AI coding workflows.
+- Source of truth: runtime commands and ~/.memory files, not static instruction snapshots.
+
+Quick entrypoints:
+- `ai-memory context` for global capability/profile state
+- `ai-memory project <name>` for project facts and implementation context
+- `ai-memory inject vs-code --scope hybrid` for routed Copilot setup
+
 Task routing flow (always follow in order):
 1) Classify task:
    - Memory architecture / inject / copilot instructions
@@ -46,6 +56,7 @@ Repository quick map (if present):
 - note.md (project progress)
 
 Skill-first routing (when available):
+- Use .github/skills/memory-project-context/SKILL.md for first-turn project understanding and file-level context routing
 - Use .github/skills/memory-router/SKILL.md for memory/inject/project-routing tasks
 - Use .github/skills/memory-token-audit/SKILL.md for token/context efficiency diagnostics
 - If skill guidance conflicts with stale snapshots, runtime memory wins.

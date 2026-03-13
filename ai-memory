@@ -253,8 +253,19 @@ append_vscode_routing_guidance() {
   local target_file="$1"
   local skill_router_rel=".github/skills/memory-router/SKILL.md"
   local skill_token_rel=".github/skills/memory-token-audit/SKILL.md"
+  local skill_project_rel=".github/skills/memory-project-context/SKILL.md"
 
   cat >> "$target_file" << 'TEMPLATE_END'
+
+Project identity (current repository):
+- Name: ai-memory
+- Goal: Provide a lightweight developer-memory layer for AI coding workflows.
+- Source of truth: runtime commands and ~/.memory files, not static instruction snapshots.
+
+Quick entrypoints:
+- `ai-memory context` for global capability/profile state
+- `ai-memory project <name>` for project facts and implementation context
+- `ai-memory inject vs-code --scope hybrid` for routed Copilot setup
 
 Task routing flow (always follow in order):
 1) Classify task:
@@ -277,11 +288,14 @@ Repository quick map (if present):
 - note.md (project progress)
 TEMPLATE_END
 
-  if [[ -f "$(pwd)/$skill_router_rel" || -f "$(pwd)/$skill_token_rel" ]]; then
+  if [[ -f "$(pwd)/$skill_router_rel" || -f "$(pwd)/$skill_token_rel" || -f "$(pwd)/$skill_project_rel" ]]; then
     cat >> "$target_file" << 'TEMPLATE_END'
 
 Skill-first routing (when available):
 TEMPLATE_END
+    if [[ -f "$(pwd)/$skill_project_rel" ]]; then
+      echo "- Use .github/skills/memory-project-context/SKILL.md for first-turn project understanding and file-level context routing" >> "$target_file"
+    fi
     if [[ -f "$(pwd)/$skill_router_rel" ]]; then
       echo "- Use .github/skills/memory-router/SKILL.md for memory/inject/project-routing tasks" >> "$target_file"
     fi
