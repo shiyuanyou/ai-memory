@@ -44,7 +44,7 @@ projects/ <project>.md
 Core Commands
 
 memory context
-return developer profile + preferences + infra
+return developer profile + preferences + infra + project summaries
 
 memory projects
 list existing projects
@@ -68,13 +68,15 @@ Servers, domains, local environment, deployed services.
 
 projects
 Existing tools and capabilities that can be reused.
+Projects are the single source of truth for project-specific memory.
 
 Usage in AI Coding Workflow
 
 Before planning solutions, AI should read developer memory:
 
 memory context
-memory projects
+
+Use memory project <name> when full project details are needed.
 
 Then incorporate this information when proposing architectures or tools.
 
@@ -85,6 +87,12 @@ Optimization Direction
 
 2. Context compression
    Return concise summaries instead of raw files to reduce prompt tokens.
+
+Data Model Rule
+
+- `profile.md`, `preferences.md`, and `infra.md` store developer-wide facts only.
+- `projects/*.md` stores all project-specific facts, status, capabilities, and roadmaps.
+- `memory context` is the default AI entrypoint and should aggregate both layers.
 
 3. Cross-tool interoperability
    Provide a universal CLI interface so any AI tool can consume the same developer memory.

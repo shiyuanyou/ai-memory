@@ -7,11 +7,11 @@
 
 ## 核心功能
 
-- **context**: 返回开发者 profile + preferences + infra
-- **projects**: 列出已有项目
+- **context**: 返回开发者 profile + preferences + infra + 项目摘要
+- **projects**: 从 `~/.memory/projects/` 列出项目摘要（项目单一真相源）
 - **project <name>**: 显示项目详情
 - **search <keyword>**: 搜索记忆库
-- **inject <tool>**: 注入上下文到各类AI工具 (claude/opencode/codex)
+- **inject <tool>**: 注入完整聚合上下文到各类AI工具 (claude/opencode/codex)
 - **learn**: 让LLM自动学习新信息并更新记忆
 - **config**: 配置LLM后端
 
@@ -19,6 +19,7 @@
 
 - 纯Shell脚本，无依赖
 - 数据存储于 `~/.memory/` 目录
+- 项目信息统一存放于 `~/.memory/projects/*.md`
 - 支持多种LLM后端配置
 
 ## 当前进度
@@ -30,6 +31,6 @@
 
 ## 下一步
 
-- 完善 profile/preferences/infra 模板
-- 增加更多项目示例
-- 优化 learn 命令的准确率
+- 补齐旧项目文件的头部元数据 (`Description` / `GitHub` / `Directory`)
+- 增加迁移与兼容验证
+- 优化 learn 命令的安全性与预览能力

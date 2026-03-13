@@ -38,9 +38,9 @@ docs/
 
 | Command | Purpose |
 |---|---|
-| `ai-memory context` | Output profile + preferences + infra for AI prompt injection |
+| `ai-memory context` | Output profile + preferences + infra + project summaries for AI prompt injection |
 | `ai-memory infra` | Show infrastructure details |
-| `ai-memory projects` | List known projects with `Description:` and optional `GitHub:` summary |
+| `ai-memory projects` | List known projects from the single project-memory source with `Description:` and optional `GitHub:` summary |
 | `ai-memory project <name>` | Show a specific project's description and capabilities |
 | `ai-memory new-project <name>` | Create a structured project memory template |
 | `ai-memory search <keyword>` | Full-text search across all memory files |
@@ -65,7 +65,7 @@ docs/
 - Data lives in `~/.memory/` at runtime; this repo only contains the CLI and docs
 - Keep the script under 500 lines; avoid adding dependencies
 - New commands follow the `case "$cmd" in` pattern in `ai-memory`
-- Project files under `~/.memory/projects/*.md` should start with `Description:`, `GitHub:`, and `Directory:` for best summaries
+- Project files under `~/.memory/projects/*.md` should start with `Description:`, `GitHub:`, and `Directory:`; project-specific memory should live only in these files
 - LLM provider configuration lives in `~/.memory/.llm-config`, not in the repo
 - Never store API keys in repo files; store only the environment variable name in `LLM_KEY_ENV`
 
@@ -83,6 +83,8 @@ Directory: ~/path/to/project
 
 Then include sections like `## Purpose`, `## How to Reference`, `## Key Capabilities`, `## Tech Stack`, and `## Notes`.
 
+`profile.md`, `preferences.md`, and `infra.md` should not duplicate project lists, project status, or project capability summaries.
+
 When an AI adds a new project, prefer `ai-memory new-project <name>` instead of inventing a new ad hoc format.
 
 ## Cross-Tool Injection Guide
@@ -97,7 +99,7 @@ Each AI tool has a preferred way to consume shell output as context:
 | **Codex CLI** | `--instructions "$(ai-memory context)"` flag at invocation |
 | **Any tool** | `ai-memory context` output piped or pasted as system/user prompt |
 
-For tools that support `AGENTS.md` or equivalent, copy relevant sections from `ai-memory context` output into that file.
+For tools that support `AGENTS.md` or equivalent, copy relevant sections from `ai-memory context` output into that file. `ai-memory context` is the self-contained default entrypoint; use `ai-memory project <name>` only when deeper project detail is needed.
 
 Generated files today:
 
@@ -138,7 +140,7 @@ Default fallback values:
 
 Behavior:
 
-1. Read current memory context from `profile.md`, `preferences.md`, and `infra.md`
+1. Read current memory context from `profile.md`, `preferences.md`, `infra.md`, and project summaries derived from `projects/*.md`
 2. Read new information from a file or stdin
 3. Ask the configured LLM to emit JSON updates
 4. Apply `append` or `replace` updates to memory files under `~/.memory/`
@@ -151,6 +153,7 @@ echo "I now use bun instead of npm for side projects" | ai-memory learn
 ```
 
 AI agents should prefer concise, durable facts over transient notes. Do not write chat transcripts verbatim into memory.
+Project-specific facts must be written to `projects/<name>.md`, not duplicated into `profile.md`, `preferences.md`, or `infra.md`.
 
 ## Validation And Pitfalls
 
@@ -175,8 +178,7 @@ AI agents should prefer concise, durable facts over transient notes. Do not writ
 Before planning architecture or proposing solutions, always read developer memory:
 
 ```bash
-ai-memory context     # who the developer is + environment
-ai-memory projects    # what tools already exist (avoid reinventing)
+ai-memory context     # who the developer is + environment + project summaries
 ```
 
 Use project information to:
@@ -184,6 +186,8 @@ Use project information to:
 - Respect stated editor/architecture preferences
 - Avoid assuming the developer lacks existing tools or servers
 - Do not suggest adding a new AI tool if one already exists in `ai-memory projects`
+
+Use `ai-memory project <name>` when you need the full details for a specific project.
 
 When the task is about updating memory itself:
 

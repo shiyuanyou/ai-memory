@@ -2,6 +2,142 @@
 
 ROOT="$HOME/.memory"
 
+shopt -s nullglob
+
+render_base_context() {
+  cat "$ROOT/profile.md" 2>/dev/null
+  echo
+  cat "$ROOT/preferences.md" 2>/dev/null
+  echo
+  cat "$ROOT/infra.md" 2>/dev/null
+}
+
+project_heading() {
+  local file="$1" heading
+
+  heading="$(grep -m1 '^# ' "$file" 2>/dev/null | sed 's/^# *//')"
+  if [[ -n "$heading" ]]; then
+    printf '%s\n' "$heading"
+  else
+    basename "$file" .md
+  fi
+}
+
+project_description() {
+  local file="$1" description
+
+  description="$(grep -m1 '^Description:' "$file" 2>/dev/null | sed 's/^Description: *//')"
+  if [[ "$description" == "Description:" || -z "$description" ]]; then
+    description="$(awk '
+      /^Description:[[:space:]]*$/ {
+        waiting=1
+        next
+      }
+      waiting && /^[[:space:]]*$/ { next }
+      waiting && /^#/ { next }
+      waiting {
+        print
+        exit
+      }
+    ' "$file")"
+  fi
+
+  if [[ -n "$description" ]]; then
+    printf '%s\n' "$description"
+    return
+  fi
+
+  description="$(awk '
+    /^\*\*(Goal|Type|Project Type|Overview)\*\*:[[:space:]]*/ {
+      line=$0
+      sub(/^\*\*[^*]+\*\*:[[:space:]]*/, "", line)
+      if (line != "") {
+        print line
+        exit
+      }
+    }
+    /^## (Overview|Purpose|Goal|Current Status|Core Features|Output|User Profile|Key Architecture|Tech Stack)/ {
+      in_section=1
+      next
+    }
+    in_section && /^[[:space:]]*$/ { next }
+    in_section && /^## / { exit }
+    in_section && /^[-*][[:space:]]/ { next }
+    in_section && /^\*\*[^*]+\*\*:[[:space:]]*/ {
+      line=$0
+      sub(/^\*\*[^*]+\*\*:[[:space:]]*/, "", line)
+      if (line != "") {
+        print line
+        exit
+      }
+    }
+    in_section && $0 !~ /^#/ {
+      print
+      exit
+    }
+  ' "$file")"
+
+  if [[ -n "$description" ]]; then
+    printf '%s\n' "$description"
+  else
+    printf '%s\n' "No summary available yet."
+  fi
+}
+
+project_github() {
+  local file="$1"
+  grep -m1 '^GitHub:' "$file" 2>/dev/null | sed 's/^GitHub: *//'
+}
+
+render_projects_summary() {
+  local files=("$ROOT/projects/"*.md)
+  local file name description github
+
+  if [[ ${#files[@]} -eq 0 ]]; then
+    echo "(no project memory yet)"
+    return
+  fi
+
+  for file in "${files[@]}"; do
+    name="$(basename "$file" .md)"
+    description="$(project_description "$file")"
+    github="$(project_github "$file")"
+
+    printf '%-20s %s' "$name" "$description"
+    [[ -n "$github" ]] && printf '  (%s)' "$github"
+    echo
+  done
+}
+
+render_context() {
+  render_base_context
+  echo
+  echo "Projects"
+  echo
+  render_projects_summary
+}
+
+is_allowed_update_file() {
+  local file="$1"
+
+  [[ -n "$file" ]] || return 1
+  [[ "$file" != /* ]] || return 1
+  [[ "$file" != *".."* ]] || return 1
+
+  case "$file" in
+    profile.md|preferences.md|infra.md|projects/*.md)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+is_project_update_file() {
+  [[ "$1" == projects/*.md ]]
+}
+
 _llm_call() {
   local system="$1" prompt="$2"
   local config="$ROOT/.llm-config"
@@ -35,11 +171,7 @@ cmd="$1"
 case "$cmd" in
 
 context)
-  cat $ROOT/profile.md 2>/dev/null
-  echo
-  cat $ROOT/preferences.md 2>/dev/null
-  echo
-  cat $ROOT/infra.md 2>/dev/null
+  render_context
   ;;
 
 infra)
@@ -47,21 +179,14 @@ infra)
   ;;
 
 projects)
-  for f in "$ROOT/projects/"*.md; do
-    name="$(basename "$f" .md)"
-    desc="$(grep -m1 '^Description:' "$f" 2>/dev/null | sed 's/^Description: *//' )"
-    github="$(grep -m1 '^GitHub:' "$f" 2>/dev/null | sed 's/^GitHub: *//')"
-    if [[ -n "$desc" ]]; then
-      printf "%-20s %s" "$name" "$desc"
-      [[ -n "$github" ]] && printf "  (%s)" "$github"
-      echo
-    else
-      echo "$name"
-    fi
-  done
+  render_projects_summary
   ;;
 
 project)
+  if [[ -z "$2" ]]; then
+    echo "Usage: ai-memory project <name>"
+    exit 1
+  fi
   cat "$ROOT/projects/$2.md"
   ;;
 
@@ -116,20 +241,16 @@ search)
 
 capability)
   echo "Memory capability:"
-  echo "  Lists projects stored under $ROOT/projects."
-  echo "  Use 'memory project <name>' to view a project file."
+  echo "  Provides unified developer context from profile, preferences, infra, and projects."
+  echo "  Use 'ai-memory project <name>' to view a project file."
   echo ""
-  echo "Existing projects:"
-  ls $ROOT/projects | sed 's/.md//'
+  echo "Project summaries:"
+  render_projects_summary
   ;;
 
 inject)
   tool="$2"
-  context_content="$(cat $ROOT/profile.md 2>/dev/null)
-
-$(cat $ROOT/preferences.md 2>/dev/null)
-
-$(cat $ROOT/infra.md 2>/dev/null)"
+  context_content="$(render_context)"
 
   case "$tool" in
   claude)
@@ -143,8 +264,8 @@ Do not edit manually — re-run the command to refresh.
 Read the developer memory before planning any solution:
 
 ```bash
-ai-memory context     # developer profile + preferences + infra
-ai-memory projects    # existing tools (avoid reinventing)
+ai-memory context     # developer profile + preferences + infra + project summaries
+ai-memory project <name>  # full details for a specific project
 ai-memory capability  # system overview
 ```
 
@@ -168,8 +289,8 @@ Do not edit manually — re-run the command to refresh.
 Read the developer memory before planning any solution:
 
 ```bash
-ai-memory context     # developer profile + preferences + infra
-ai-memory projects    # existing tools (avoid reinventing)
+ai-memory context     # developer profile + preferences + infra + project summaries
+ai-memory project <name>  # full details for a specific project
 ai-memory capability  # system overview
 ```
 
@@ -258,11 +379,7 @@ learn)
     input="$(cat)"
   fi
 
-  current="$(cat "$ROOT/profile.md" 2>/dev/null)
-
-$(cat "$ROOT/preferences.md" 2>/dev/null)
-
-$(cat "$ROOT/infra.md" 2>/dev/null)"
+  current="$(render_context)"
 
   system='You are a developer memory manager. Extract facts worth remembering from the new information provided.
 Output ONLY valid JSON (no markdown fences, no explanation):
@@ -273,6 +390,12 @@ Output ONLY valid JSON (no markdown fences, no explanation):
 }
 Supported files: profile.md, preferences.md, infra.md, projects/<name>.md
 Actions: "append" adds text to end of file. "replace" rewrites the full file.
+Rules:
+- Project-specific facts, project status, project capabilities, and project roadmaps must only go to projects/<name>.md.
+- Do not store project lists or project summaries in profile.md, preferences.md, or infra.md.
+- profile.md is for developer identity and technical background only.
+- preferences.md is for coding preferences and constraints only.
+- infra.md is for infrastructure, domains, services, and environments only.
 Skip trivial or already-known facts. Be concise. If nothing is worth remembering, return {"updates":[]}'
 
   user="Current memory:
@@ -297,6 +420,26 @@ ${input}"
     file="$(jq -r ".updates[$i].file" <<< "$response")"
     action="$(jq -r ".updates[$i].action" <<< "$response")"
     content="$(jq -r ".updates[$i].content" <<< "$response")"
+
+    if ! is_allowed_update_file "$file"; then
+      echo "  invalid target '$file' — skipped"
+      continue
+    fi
+
+    case "$action" in
+      append|replace)
+        ;;
+      *)
+        echo "  unknown action '$action' for $file — skipped"
+        continue
+        ;;
+    esac
+
+    if ! is_project_update_file "$file" && grep -Eiq '(^# )|(^Description:)|(^GitHub:)|(^Directory:)|(^## )' <<< "$content"; then
+      echo "  project-like content targeted $file — skipped"
+      continue
+    fi
+
     target="$ROOT/$file"
     mkdir -p "$(dirname "$target")"
     case "$action" in
@@ -307,9 +450,6 @@ ${input}"
     replace)
       printf '%s\n' "$content" > "$target"
       echo "  replaced → $file"
-      ;;
-    *)
-      echo "  unknown action '$action' for $file — skipped"
       ;;
     esac
   done
@@ -323,6 +463,7 @@ ${input}"
   echo "  ai-memory projects"
   echo "  ai-memory project <name>"
   echo "  ai-memory new-project <name>"
+  echo "  ai-memory capability"
   echo "  ai-memory search <keyword>"
   echo "  ai-memory inject <tool>    (claude | opencode | codex)"
   echo "  ai-memory config show"
