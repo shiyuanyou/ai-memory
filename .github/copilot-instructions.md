@@ -7,10 +7,10 @@ Mode: hybrid
 
 For VS Code Copilot, prefer dynamic context over static snapshots.
 
-Always start by reading runtime memory:
-- `ai-memory capability`
-- `ai-memory context`
-- `ai-memory project <name>` (only when task is project-specific)
+Default policy: budget-first retrieval.
+- Start with ONE source only (snapshot or `ai-memory capability`).
+- Escalate only when missing critical facts.
+- Avoid `ai-memory context` on first turn for simple Q&A.
 
 Rules:
 - Runtime commands are the source of truth.
@@ -28,8 +28,17 @@ Core entrypoints:
 
 Decision flow (minimal):
 1) Classify task intent (use quick-ref or skills)
-2) Fetch minimum context (capability -> context -> project)
+2) Fetch minimum context (single source -> project -> context)
 3) Execute change and re-run inject only if memory changed
+
+First-turn retrieval budget:
+- Simple intro / definition: max 1 retrieval.
+- Project explanation / routing: max 2 retrievals.
+- Implementation / bugfix tasks: escalate to code reads as needed.
+
+Stop conditions:
+- If the answer is already actionable, stop retrieval.
+- If missing one key fact, fetch exactly one next source.
 
 
 Quick classification reference:
