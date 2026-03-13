@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+ROOT="$HOME/.memory"
+
+cmd="$1"
+
+case "$cmd" in
+
+context)
+  cat $ROOT/profile.md 2>/dev/null
+  echo
+  cat $ROOT/preferences.md 2>/dev/null
+  echo
+  cat $ROOT/infra.md 2>/dev/null
+  ;;
+
+infra)
+  cat $ROOT/infra.md
+  ;;
+
+projects)
+  ls $ROOT/projects | sed 's/.md//'
+  ;;
+
+project)
+  cat $ROOT/projects/$2.md
+  ;;
+
+search)
+  grep -r "$2" $ROOT
+  ;;
+
+capability)
+  echo "Memory capability:"
+  echo "  Lists projects stored under $ROOT/projects."
+  echo "  Use 'memory project <name>' to view a project file."
+  echo ""
+  echo "Existing projects:"
+  ls $ROOT/projects | sed 's/.md//'
+  ;;
+
+*)
+  echo "memory commands:"
+  echo "  memory context"
+  echo "  memory infra"
+  echo "  memory projects"
+  echo "  memory project <name>"
+  echo "  memory search <keyword>"
+  ;;
+esac
