@@ -7,53 +7,38 @@ Mode: global
 
 For VS Code Copilot, prefer dynamic context over static snapshots.
 
-Always start by reading runtime memory, not this file content:
+Always start by reading runtime memory:
+- `ai-memory capability`
+- `ai-memory context`
+- `ai-memory project <name>` (only when task is project-specific)
 
-`ai-memory context`
-
-For project-specific tasks, run:
-
-`ai-memory project <name>`
-
-To view memory-system capabilities, run:
-
-`ai-memory capability`
-
-Rules for AI assistants:
-- Treat `ai-memory context` as the default source of truth.
-- Do not assume this file contains the latest runtime memory.
-- Use project files (`projects/*.md`) as the only source for project-specific memory.
+Rules:
+- Runtime commands are the source of truth.
+- Treat static instruction text as routing hints only.
 
 
-Project identity (current repository):
+Project identity:
 - Name: ai-memory
-- Goal: Provide a lightweight developer-memory layer for AI coding workflows.
-- Source of truth: runtime commands and ~/.memory files, not static instruction snapshots.
+- Goal: lightweight developer-memory layer for AI coding workflows
+- Source of truth: runtime commands and ~/.memory files
 
-Quick entrypoints:
+Core entrypoints:
 - `ai-memory context` for global capability/profile state
 - `ai-memory project <name>` for project facts and implementation context
-- `ai-memory inject vs-code --scope hybrid` for routed Copilot setup
 
-Task routing flow (always follow in order):
-1) Classify task:
-   - Memory architecture / inject / copilot instructions
-   - Project fact lookup
-   - Learn and memory updates
-   - Token optimization
-2) Fetch minimum required context only:
-   - Start with ai-memory capability
-   - Then ai-memory context
-   - Then ai-memory project <name> only if needed
-3) Execute and verify:
-   - Prefer small, explicit edits
-   - Re-run inject when memory changed
+Decision flow (minimal):
+1) Classify task intent (use quick-ref or skills)
+2) Fetch minimum context (capability -> context -> project)
+3) Execute change and re-run inject only if memory changed
 
-Repository quick map (if present):
+
+Quick classification reference:
+- docs/task-classification-quick-ref.md
+
+Repository map:
 - ai-memory (CLI entrypoint)
 - lib/learn.sh (learn pipeline)
-- docs/core-idea.md (design principles)
-- note.md (project progress)
+- docs/core-idea.md (architecture principles)
 
 Skill-first routing (when available):
 - Use .github/skills/memory-project-context/SKILL.md for first-turn project understanding and file-level context routing

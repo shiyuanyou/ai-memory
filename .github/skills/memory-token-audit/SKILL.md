@@ -1,6 +1,17 @@
 ---
 name: memory-token-audit
 description: Audit and optimize token usage for ai-memory prompts and instruction files. Use when user asks to reduce context cost, compare inject modes, improve first-turn hit rate, or design skills-based on-demand memory loading.
+metadata:
+  keywords:
+    - token audit
+    - context efficiency
+    - hit rate
+    - instruction size
+  triggers:
+    - "reduce token cost"
+    - "context is too large"
+    - "improve first-turn hit rate"
+    - "节约上下文"
 ---
 
 # Memory Token Audit

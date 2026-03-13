@@ -1,6 +1,17 @@
 ---
 name: memory-project-context
 description: Provide first-turn understanding of the ai-memory repository with minimal tokens. Always use this skill when user asks what this project does, asks for implementation entrypoints, requests architecture explanation, or when a subagent needs a narrow read plan for this repository.
+metadata:
+  keywords:
+    - ai-memory overview
+    - project introduction
+    - architecture entrypoints
+    - first-turn understanding
+  triggers:
+    - "what is this project"
+    - "introduce this repo"
+    - "项目是做什么的"
+    - "关键入口在哪里"
 ---
 
 # Memory Project Context

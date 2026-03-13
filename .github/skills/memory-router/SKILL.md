@@ -1,6 +1,17 @@
 ---
 name: memory-router
 description: Route tasks in the ai-memory project and load only the minimum required memory context. Always use this skill when user asks about ai-memory architecture, inject modes, copilot-instructions redesign, project memory lookup, learn pipeline behavior, or when a subagent should avoid broad file reads.
+metadata:
+  keywords:
+    - routing
+    - minimal context
+    - inject modes
+    - copilot instructions
+  triggers:
+    - "how should we route this task"
+    - "inject strategy"
+    - "copilot instructions redesign"
+    - "最小化读取路径"
 ---
 
 # Memory Router
