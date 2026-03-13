@@ -95,6 +95,21 @@ Rule:
 - Keep `.github/copilot-instructions.md` as orchestration and retrieval guidance, not a full static memory dump.
 - Runtime memory (`ai-memory context` and `ai-memory project <name>`) remains the source of truth.
 
+Skill-based On-demand Memory
+
+Use skills as the routing layer and keep runtime memory as the fact layer:
+
+- Skills decide what to load and when to load it.
+- `ai-memory` commands provide the latest facts.
+- Instructions stay compact and focus on decision flow.
+
+Recommended split:
+
+- Routing skill: classify tasks and choose minimal reads.
+- Token audit skill: monitor instruction size and context efficiency.
+
+This pattern improves first-turn task routing while avoiding static context bloat.
+
 Optimization Direction
 
 1. Capability awareness

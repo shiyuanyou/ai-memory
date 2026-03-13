@@ -37,6 +37,9 @@
 - [x] 项目摘要文件输出（`.github/copilot-project-summary.md`，按需生成）
 - [x] 注入产物体积与 token 估算输出（便于持续优化）
 - [x] learn 后可选自动刷新注入（`AUTO_INJECT_VSCODE=1`）
+- [x] Memory skills 按需加载层（routing + token audit）
+- [x] VS Code 主指令增加结构化路由流（task classify -> minimal fetch -> execute）
+- [x] 命中率验证清单文档（新窗口 + sub agent + token 评分）
 
 ## 下一步
 
@@ -44,3 +47,4 @@
 - 增加可重复的 smoke 测试脚本（语法 + 命令回归 + 错误路径）
 - 优化 learn 的 dry-run 预览展示（当前仅动作级提示，可增强为内容 diff）
 - 增加注入模式 A/B 评估（首轮理解率 vs token 成本）
+- 增加新窗口与 sub agent 命中率基线测试集（用于验证 skills 触发效果）
