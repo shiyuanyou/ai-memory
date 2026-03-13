@@ -28,9 +28,14 @@
 - [x] 支持多种AI工具上下文注入
 - [x] LLM自动学习功能
 - [x] 文档 (docs/core-idea.md)
+- [x] 稳定性修复（project/inject 错误码与错误信息一致）
+- [x] 配置写入安全加固（config set 参数校验 + 安全写回）
+- [x] VS Code 动态注入支持（`ai-memory inject vs-code` 生成 `.github/copilot-instructions.md`）
+- [x] learn 模块化重构（主脚本分发，`lib/llm.sh` + `lib/learn.sh`）
+- [x] projects 摘要解析可维护化（`project_description` 线性化简化）
 
 ## 下一步
 
 - 补齐旧项目文件的头部元数据 (`Description` / `GitHub` / `Directory`)
-- 增加迁移与兼容验证
-- 优化 learn 命令的安全性与预览能力
+- 增加可重复的 smoke 测试脚本（语法 + 命令回归 + 错误路径）
+- 优化 learn 的 dry-run 预览展示（当前仅动作级提示，可增强为内容 diff）

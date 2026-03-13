@@ -26,28 +26,26 @@ project_heading() {
 project_description() {
   local file="$1" description
 
-  description="$(grep -m1 '^Description:' "$file" 2>/dev/null | sed 's/^Description: *//')"
-  if [[ "$description" == "Description:" || -z "$description" ]]; then
-    description="$(awk '
-      /^Description:[[:space:]]*$/ {
-        waiting=1
-        next
-      }
-      waiting && /^[[:space:]]*$/ { next }
-      waiting && /^#/ { next }
-      waiting {
-        print
-        exit
-      }
-    ' "$file")"
-  fi
-
+  # Fast path: prefer explicit one-line metadata.
+  description="$(grep -m1 '^Description:[[:space:]]*[^[:space:]]' "$file" 2>/dev/null | sed 's/^Description:[[:space:]]*//')"
   if [[ -n "$description" ]]; then
     printf '%s\n' "$description"
     return
   fi
 
+  # Compatibility path: support block Description and common overview-like sections.
   description="$(awk '
+    /^Description:[[:space:]]*$/ {
+      in_description=1
+      next
+    }
+    in_description && /^[[:space:]]*$/ { next }
+    in_description && /^#/ { next }
+    in_description {
+      print
+      exit
+    }
+
     /^\*\*(Goal|Type|Project Type|Overview)\*\*:[[:space:]]*/ {
       line=$0
       sub(/^\*\*[^*]+\*\*:[[:space:]]*/, "", line)
@@ -56,6 +54,7 @@ project_description() {
         exit
       }
     }
+
     /^## (Overview|Purpose|Goal|Current Status|Core Features|Output|User Profile|Key Architecture|Tech Stack)/ {
       in_section=1
       next
@@ -79,9 +78,10 @@ project_description() {
 
   if [[ -n "$description" ]]; then
     printf '%s\n' "$description"
-  else
-    printf '%s\n' "No summary available yet."
+    return
   fi
+
+  printf '%s\n' "No summary available yet."
 }
 
 project_github() {
