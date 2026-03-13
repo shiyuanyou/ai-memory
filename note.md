@@ -51,6 +51,7 @@
 - [x] 仓库映射修正（`.ai-memory-project` 指向 `ai-memory`）
 - [x] 一键初始化命令（`ai-memory setup <tool> [--project <name>]`）
 - [x] OpenCode 注入双目标输出（`AGENTS.md` + `.opencode/instructions.md`）
+- [x] 多项目统一初始化（`ai-memory init`：项目映射 + skills 分发 + 多工具注入）
 
 ## 下一步
 
@@ -61,3 +62,4 @@
 - 在新窗口和 sub agent 场景跑命中率评估并固化阈值
 - 增加新窗口与 sub agent 命中率基线测试集（用于验证 skills 触发效果）
 - 统一 opencode/claude/codex 注入为 `--scope global|project|hybrid`（对齐 vs-code）
+- 增加 `ai-memory init` 的跨仓库 smoke 用例与回归校验

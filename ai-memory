@@ -436,6 +436,43 @@ TEMPLATE_END
   fi
 }
 
+install_default_skills_pack() {
+  local repo_root="$1"
+  local script_dir
+  local src_root
+  local dst_root
+  local skill_name
+  local copied=0
+
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  src_root="$script_dir/.github/skills"
+  dst_root="$repo_root/.github/skills"
+
+  if [[ ! -d "$src_root" ]]; then
+    echo "Warning: default skills source not found: $src_root" >&2
+    return 1
+  fi
+
+  mkdir -p "$dst_root"
+  for skill_name in memory-project-context memory-router memory-token-audit; do
+    if [[ -f "$src_root/$skill_name/SKILL.md" ]]; then
+      mkdir -p "$dst_root/$skill_name"
+      if [[ "$src_root/$skill_name/SKILL.md" != "$dst_root/$skill_name/SKILL.md" ]]; then
+        cp "$src_root/$skill_name/SKILL.md" "$dst_root/$skill_name/SKILL.md"
+      fi
+      (( copied += 1 ))
+    fi
+  done
+
+  if (( copied == 0 )); then
+    echo "Warning: no default skills copied to $dst_root" >&2
+    return 1
+  fi
+
+  echo "Installed default skills pack into: $dst_root"
+  return 0
+}
+
 is_allowed_update_file() {
   local file="$1"
 
@@ -642,6 +679,92 @@ setup)
   *)
     echo "Error: unsupported tool '$tool'" >&2
     echo "Supported tools: vs-code, copilot, opencode, claude, codex" >&2
+    exit 1
+    ;;
+  esac
+  ;;
+
+init)
+  project_name=""
+  tool="all"
+  inject_scope="hybrid"
+  with_skills=1
+  repo_root="$(pwd -P)"
+
+  while [[ $# -gt 1 ]]; do
+    case "$2" in
+    --project)
+      if [[ -z "$3" ]]; then
+        echo "Error: --project requires a project name" >&2
+        exit 1
+      fi
+      project_name="$3"
+      shift 2
+      ;;
+    --tool)
+      if [[ -z "$3" ]]; then
+        echo "Error: --tool requires a value (vs-code|copilot|opencode|claude|codex|all)" >&2
+        exit 1
+      fi
+      tool="$3"
+      shift 2
+      ;;
+    --scope)
+      if [[ -z "$3" ]]; then
+        echo "Error: --scope requires a value (global|project|hybrid)" >&2
+        exit 1
+      fi
+      inject_scope="$3"
+      shift 2
+      ;;
+    --no-skills)
+      with_skills=0
+      shift 1
+      ;;
+    *)
+      echo "Usage: ai-memory init [--project <name>] [--tool vs-code|copilot|opencode|claude|codex|all] [--scope global|project|hybrid] [--no-skills]" >&2
+      exit 1
+      ;;
+    esac
+  done
+
+  case "$inject_scope" in
+    global|project|hybrid)
+      ;;
+    *)
+      echo "Error: invalid scope '$inject_scope' (expected: global|project|hybrid)" >&2
+      exit 1
+      ;;
+  esac
+
+  if [[ -z "$project_name" ]]; then
+    project_name="$(resolve_inject_project "" 2>/dev/null || true)"
+  fi
+  if [[ -z "$project_name" ]]; then
+    project_name="$(basename "$repo_root")"
+  fi
+
+  printf '%s\n' "$project_name" > "$repo_root/.ai-memory-project"
+  echo "Updated mapping: $repo_root/.ai-memory-project -> $project_name"
+
+  if (( with_skills == 1 )); then
+    install_default_skills_pack "$repo_root" || true
+  fi
+
+  case "$tool" in
+  vs-code|copilot)
+    "$0" inject "$tool" --scope "$inject_scope" --project "$project_name"
+    ;;
+  opencode|claude|codex)
+    "$0" inject "$tool"
+    ;;
+  all)
+    "$0" inject vs-code --scope "$inject_scope" --project "$project_name"
+    "$0" inject opencode
+    ;;
+  *)
+    echo "Error: unsupported tool '$tool'" >&2
+    echo "Supported tools: vs-code, copilot, opencode, claude, codex, all" >&2
     exit 1
     ;;
   esac
@@ -944,6 +1067,7 @@ learn)
   echo "  ai-memory new-project <name>"
   echo "  ai-memory capability"
   echo "  ai-memory search <keyword>"
+  echo "  ai-memory init [--project <name>] [--tool vs-code|copilot|opencode|claude|codex|all] [--scope global|project|hybrid] [--no-skills]"
   echo "  ai-memory setup <tool> [--project <name>]"
   echo "  ai-memory inject <tool>    (claude | opencode | codex | vs-code)"
   echo "      vs-code options: --scope global|project|hybrid [--project <name>]"
