@@ -591,6 +591,62 @@ capability)
   render_projects_summary
   ;;
 
+setup)
+  if [[ -z "$2" ]]; then
+    echo "Usage: ai-memory setup <tool> [--project <name>]" >&2
+    echo "" >&2
+    echo "Examples:" >&2
+    echo "  ai-memory setup opencode" >&2
+    echo "  ai-memory setup vs-code" >&2
+    echo "  ai-memory setup vs-code --project ai-memory" >&2
+    exit 1
+  fi
+
+  tool="$2"
+  shift 2
+  requested_project=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --project)
+      if [[ -z "$2" ]]; then
+        echo "Error: --project requires a project name" >&2
+        exit 1
+      fi
+      requested_project="$2"
+      shift 2
+      ;;
+    *)
+      echo "Usage: ai-memory setup <tool> [--project <name>]" >&2
+      exit 1
+      ;;
+    esac
+  done
+
+  if [[ -n "$requested_project" ]]; then
+    printf '%s\n' "$requested_project" > "$(pwd)/.ai-memory-project"
+    echo "Updated mapping: $(pwd)/.ai-memory-project -> $requested_project"
+  fi
+
+  case "$tool" in
+  vs-code|copilot)
+    if [[ -n "$requested_project" ]]; then
+      "$0" inject "$tool" --scope hybrid --project "$requested_project"
+    else
+      "$0" inject "$tool" --scope hybrid
+    fi
+    ;;
+  opencode|claude|codex)
+    "$0" inject "$tool"
+    ;;
+  *)
+    echo "Error: unsupported tool '$tool'" >&2
+    echo "Supported tools: vs-code, copilot, opencode, claude, codex" >&2
+    exit 1
+    ;;
+  esac
+  ;;
+
 inject)
   if [[ -z "$2" ]]; then
     echo "Usage: ai-memory inject <tool>" >&2
@@ -868,6 +924,7 @@ learn)
   echo "  ai-memory new-project <name>"
   echo "  ai-memory capability"
   echo "  ai-memory search <keyword>"
+  echo "  ai-memory setup <tool> [--project <name>]"
   echo "  ai-memory inject <tool>    (claude | opencode | codex | vs-code)"
   echo "      vs-code options: --scope global|project|hybrid [--project <name>]"
   echo "  ai-memory config show"
