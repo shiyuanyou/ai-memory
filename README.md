@@ -17,13 +17,19 @@ ai-memory keeps that context in `~/.memory/` and injects the minimum useful cont
 Run this in your target project directory:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/shiyuanyou/ai-memory/main/bootstrap.sh) --project <your-project-name> --tool all --scope hybrid
+bash <(curl -fsSL https://raw.githubusercontent.com/shiyuanyou/ai-memory/v0.2.0/bootstrap.sh) --project <your-project-name> --tool all --scope hybrid --ref v0.2.0
 ```
 
 What it does:
 - clones or updates this repository into `$HOME/.local/share/ai-memory`
 - links `ai-memory` into `$HOME/.local/bin`
-- auto-runs project init (mapping + skills + VS Code/OpenCode injection)
+- auto-runs project init (mapping + skills + VS Code/OpenCode/Claude/Codex injection)
+
+To always install the latest main branch instead of a stable tag:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/shiyuanyou/ai-memory/main/bootstrap.sh) --project <your-project-name> --tool all --scope hybrid --ref main
+```
 
 If `$HOME/.local/bin` is not in your `PATH`, add this to your shell config:
 
@@ -68,6 +74,13 @@ What this does:
 - binds the repo to a memory project using `.ai-memory-project`
 - installs the default skills pack into `.github/skills`
 - generates editor/agent instructions for the selected tool(s)
+
+When you use `--tool all`, it initializes:
+
+- VS Code / Copilot
+- OpenCode
+- Claude
+- Codex
 
 ## Add a new project into memory
 
@@ -144,6 +157,8 @@ ai-memory init --project <name> --tool all --scope hybrid
 
 - OpenCode output is written to both `AGENTS.md` and `.opencode/instructions.md`.
 - VS Code output is written under `.github/`.
+- Claude output is written to `CLAUDE.md`.
+- Codex output is written to `.codex-instructions.md`.
 
 ## Suggested workflow
 

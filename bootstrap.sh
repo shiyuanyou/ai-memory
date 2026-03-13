@@ -3,6 +3,7 @@
 set -euo pipefail
 
 REPO_URL="${AI_MEMORY_REPO_URL:-https://github.com/shiyuanyou/ai-memory.git}"
+REPO_REF="${AI_MEMORY_REPO_REF:-main}"
 INSTALL_DIR="${AI_MEMORY_INSTALL_DIR:-$HOME/.local/share/ai-memory}"
 BIN_DIR="${AI_MEMORY_BIN_DIR:-$HOME/.local/bin}"
 SCOPE="${AI_MEMORY_INIT_SCOPE:-hybrid}"
@@ -22,6 +23,7 @@ Options:
   --tool <name>        Init tool: vs-code|copilot|opencode|claude|codex|all (default: all)
   --skip-init          Install ai-memory only, do not run init
   --repo <url>         Override repository URL
+  --ref <git-ref>      Install a specific branch or tag (default: main)
   -h, --help           Show this help
 EOF
 }
@@ -57,6 +59,11 @@ while [[ $# -gt 0 ]]; do
     [[ -n "$REPO_URL" ]] || { echo "Error: --repo requires a value" >&2; exit 1; }
     shift 2
     ;;
+  --ref)
+    REPO_REF="${2:-}"
+    [[ -n "$REPO_REF" ]] || { echo "Error: --ref requires a value" >&2; exit 1; }
+    shift 2
+    ;;
   -h|--help)
     print_help
     exit 0
@@ -81,10 +88,13 @@ esac
 
 mkdir -p "$BIN_DIR"
 if [[ -d "$INSTALL_DIR/.git" ]]; then
-  git -C "$INSTALL_DIR" pull --ff-only
+  git -C "$INSTALL_DIR" fetch --tags origin
+  git -C "$INSTALL_DIR" checkout "$REPO_REF"
+  git -C "$INSTALL_DIR" pull --ff-only origin "$REPO_REF" || true
 else
   rm -rf "$INSTALL_DIR"
   git clone "$REPO_URL" "$INSTALL_DIR"
+  git -C "$INSTALL_DIR" checkout "$REPO_REF"
 fi
 
 chmod +x "$INSTALL_DIR/ai-memory"
