@@ -1,0 +1,55 @@
+{
+  "suite": "skills-routing",
+  "description": "Prompts for validating first-turn routing in new-window and subagent scenarios.",
+  "thresholds": {
+    "new_window": 0.8,
+    "subagent": 0.85
+  },
+  "evals": [
+    {
+      "id": "intro-project",
+      "prompt": "简单介绍一下这个项目",
+      "expected": [
+        "Mentions ai-memory project goal",
+        "Uses a narrow read path",
+        "Avoids broad snapshot dumping"
+      ]
+    },
+    {
+      "id": "static-snapshot",
+      "prompt": "为什么你们不用静态大快照写 copilot-instructions?",
+      "expected": [
+        "Explains dynamic source of truth",
+        "Mentions token/staleness tradeoff",
+        "Keeps read set minimal"
+      ]
+    },
+    {
+      "id": "inject-optimization",
+      "prompt": "帮我改 inject 逻辑，支持更省 token 的模式",
+      "expected": [
+        "Routes to inject/instructions logic",
+        "Mentions global/project/hybrid or equivalent",
+        "Avoids irrelevant files"
+      ]
+    },
+    {
+      "id": "learn-staleness",
+      "prompt": "分析 learn 流程是否会导致上下文过期",
+      "expected": [
+        "Routes to learn pipeline",
+        "Discusses refresh/inject linkage",
+        "References runtime memory freshness"
+      ]
+    },
+    {
+      "id": "token-audit",
+      "prompt": "评估这个仓库的 token 开销结构",
+      "expected": [
+        "Routes to token audit skill or equivalent",
+        "Mentions instructions vs skills split",
+        "Provides bounded optimization advice"
+      ]
+    }
+  ]
+}

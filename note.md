@@ -42,6 +42,8 @@
 - [x] Memory skills 按需加载层（routing + token audit）
 - [x] VS Code 主指令增加结构化路由流（task classify -> minimal fetch -> execute）
 - [x] 命中率验证清单文档（新窗口 + sub agent + token 评分）
+- [x] 命中率评分脚手架（prompt suite + results template + scorer）
+- [x] 项目解析优先级增强（env + repo mapping file + 目录回退）
 
 ## 下一步
 

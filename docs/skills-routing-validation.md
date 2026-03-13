@@ -4,6 +4,8 @@ Use this checklist to validate first-turn understanding and token efficiency aft
 
 ## Preconditions
 - Run `ai-memory inject vs-code --scope global`.
+- Optional: initialize scoring files with `./lib/score-routing-evals.sh .`.
+- If testing `--scope project|hybrid`, set a repo mapping file (`.ai-memory-project`) or pass `--project <name>`.
 - Confirm these skills exist:
   - `.github/skills/memory-project-context/SKILL.md`
   - `.github/skills/memory-router/SKILL.md`
@@ -34,6 +36,11 @@ Pass criteria:
 - First-turn hit rate = successful prompts / total prompts.
 - Context size proxy = generated instructions bytes and approximate tokens.
 - Overread count = number of unrelated files opened before first useful answer.
+
+## Files
+- Prompt suite: `evals/skills-routing-evals.json`
+- Example results: `evals/skills-routing-results.example.json`
+- Score script: `lib/score-routing-evals.sh`
 
 ## Suggested Thresholds
 - New window hit rate >= 0.80

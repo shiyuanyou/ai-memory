@@ -111,6 +111,16 @@ Policy:
 - Skills should be split by intent so only one relevant skill body is loaded.
 - If skill guidance and static snapshot conflict, runtime memory is authoritative.
 
+Project resolution priority for inject project/hybrid modes:
+- Explicit CLI arg: `--project <name>`
+- Environment override: `AI_MEMORY_PROJECT=<name>`
+- Repository mapping file: `.ai-memory-project` or `.github/ai-memory-project`
+- Directory heuristics and `Directory:` metadata fallback
+
+Project summary source priority:
+- Runtime project memory: `~/.memory/projects/<name>.md`
+- Repo-local fallback: `.github/project-memory.md` or `docs/project-memory.md`
+
 Optimization Direction
 
 1. Capability awareness

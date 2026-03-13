@@ -1,0 +1,22 @@
+{
+  "results": [
+    {
+      "id": "intro-project",
+      "mode": "new_window",
+      "passed": true,
+      "notes": "回答提到了项目目标，并先走了项目 skill。"
+    },
+    {
+      "id": "intro-project",
+      "mode": "subagent",
+      "passed": true,
+      "notes": "Explore 先读了 project-context skill。"
+    },
+    {
+      "id": "static-snapshot",
+      "mode": "new_window",
+      "passed": false,
+      "notes": "没有明确说出 token 与 stale tradeoff。"
+    }
+  ]
+}

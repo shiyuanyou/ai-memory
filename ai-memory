@@ -130,6 +130,42 @@ expand_home_path() {
   printf '%s\n' "$path"
 }
 
+read_repo_project_mapping() {
+  local repo_root="$1"
+  local mapping_file
+  local mapped_project
+
+  for mapping_file in "$repo_root/.ai-memory-project" "$repo_root/.github/ai-memory-project"; do
+    [[ -f "$mapping_file" ]] || continue
+    mapped_project="$(sed -n '1{s/[[:space:]]*$//;p;}' "$mapping_file")"
+    [[ -n "$mapped_project" ]] || continue
+    printf '%s\n' "$mapped_project"
+    return 0
+  done
+
+  return 1
+}
+
+resolve_project_source_file() {
+  local project_name="$1"
+  local repo_root="$2"
+  local global_file="$ROOT/projects/$project_name.md"
+  local local_file
+
+  if [[ -f "$global_file" ]]; then
+    printf '%s\n' "$global_file"
+    return 0
+  fi
+
+  for local_file in "$repo_root/.github/project-memory.md" "$repo_root/docs/project-memory.md"; do
+    [[ -f "$local_file" ]] || continue
+    printf '%s\n' "$local_file"
+    return 0
+  done
+
+  return 1
+}
+
 resolve_inject_project() {
   local requested="$1"
   local target=""
@@ -137,18 +173,39 @@ resolve_inject_project() {
   local file
   local directory_field
   local expanded_dir
+  local repo_root
+  local mapped_project
 
   if [[ -n "$requested" ]]; then
-    target="$ROOT/projects/$requested.md"
-    if [[ -f "$target" ]]; then
+    target="$(resolve_project_source_file "$requested" "$(pwd -P)")" || target=""
+    if [[ -n "$target" ]]; then
       printf '%s\n' "$requested"
       return 0
     fi
     return 1
   fi
 
+  if [[ -n "${AI_MEMORY_PROJECT:-}" ]]; then
+    target="$(resolve_project_source_file "$AI_MEMORY_PROJECT" "$(pwd -P)")" || target=""
+    if [[ -n "$target" ]]; then
+      printf '%s\n' "$AI_MEMORY_PROJECT"
+      return 0
+    fi
+  fi
+
+  repo_root="$(pwd -P)"
+  mapped_project="$(read_repo_project_mapping "$repo_root")" || mapped_project=""
+  if [[ -n "$mapped_project" ]]; then
+    target="$(resolve_project_source_file "$mapped_project" "$repo_root")" || target=""
+    if [[ -n "$target" ]]; then
+      printf '%s\n' "$mapped_project"
+      return 0
+    fi
+  fi
+
   candidate="$(basename "$(pwd)")"
-  if [[ -f "$ROOT/projects/$candidate.md" ]]; then
+  target="$(resolve_project_source_file "$candidate" "$repo_root")" || target=""
+  if [[ -n "$target" ]]; then
     printf '%s\n' "$candidate"
     return 0
   fi
@@ -198,11 +255,16 @@ render_projects_quick_glance() {
 write_copilot_project_summary() {
   local project_name="$1"
   local target_file="$2"
-  local source_file="$ROOT/projects/$project_name.md"
+  local source_file
+  local repo_root="$(pwd -P)"
   local max_lines=140
   local total_lines=0
+  local source_label="runtime memory"
 
-  [[ -f "$source_file" ]] || return 1
+  source_file="$(resolve_project_source_file "$project_name" "$repo_root")" || return 1
+  if [[ "$source_file" != "$ROOT/projects/$project_name.md" ]]; then
+    source_label="repo-local fallback"
+  fi
 
   total_lines="$(wc -l < "$source_file" | tr -d ' ')"
 
@@ -214,10 +276,11 @@ Do not edit manually - re-run inject to refresh.
 
 Project: $project_name
 Generated at: $(date '+%Y-%m-%d %H:%M:%S')
+Source layer: $source_label
 
-Source of truth remains runtime memory:
-- \`ai-memory context\`
-- \`ai-memory project $project_name\`
+Source of truth guidance:
+- Prefer \`ai-memory context\` and \`ai-memory project $project_name\` when runtime memory exists.
+- This snapshot may use repo-local project memory when global runtime memory is not yet populated.
 
 ## Quick Facts
 
