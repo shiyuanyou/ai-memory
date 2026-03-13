@@ -56,7 +56,7 @@ Skill-first routing (when available):
 - If skill guidance conflicts with stale snapshots, runtime memory wins.
 
 Project summary snapshot:
-- Preferred project: memory
+- Preferred project: ai-memory
 - Read: .github/copilot-project-summary.md
 - Treat snapshot as helper only; runtime memory stays authoritative.
 

@@ -123,7 +123,7 @@ expand_home_path() {
     printf '%s\n' "$HOME"
     return
   fi
-  if [[ "$path" == ~/* ]]; then
+  if [[ "$path" == "~/"* ]]; then
     printf '%s\n' "$HOME/${path#~/}"
     return
   fi
