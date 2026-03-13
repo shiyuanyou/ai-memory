@@ -17,7 +17,7 @@ ai-memory keeps that context in `~/.memory/` and injects the minimum useful cont
 Run this in your target project directory:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/shiyuanyou/ai-memory/v0.2.0/bootstrap.sh) --project <your-project-name> --tool all --scope hybrid --ref v0.2.0
+bash <(curl -fsSL https://raw.githubusercontent.com/shiyuanyou/ai-memory/v0.2.1/install.sh) --project <your-project-name>
 ```
 
 What it does:
@@ -29,6 +29,12 @@ To always install the latest main branch instead of a stable tag:
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/shiyuanyou/ai-memory/main/bootstrap.sh) --project <your-project-name> --tool all --scope hybrid --ref main
+```
+
+To customize tool/scope on a stable release, use `bootstrap.sh` directly:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/shiyuanyou/ai-memory/v0.2.1/bootstrap.sh) --project <your-project-name> --tool vs-code --scope project --ref v0.2.1
 ```
 
 If `$HOME/.local/bin` is not in your `PATH`, add this to your shell config:
