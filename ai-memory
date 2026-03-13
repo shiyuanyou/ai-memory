@@ -252,21 +252,61 @@ render_projects_quick_glance() {
   done
 }
 
+extract_markdown_section() {
+  local file="$1"
+  local section_name="$2"
+
+  awk -v target="$section_name" '
+    $0 == "## " target {
+      in_section=1
+      next
+    }
+    in_section && /^## / { exit }
+    in_section { print }
+  ' "$file"
+}
+
+render_section_excerpt() {
+  local file="$1"
+  local section_name="$2"
+  local max_lines="${3:-4}"
+  local content
+
+  content="$(extract_markdown_section "$file" "$section_name" | sed '/^[[:space:]]*$/d' | sed -n "1,${max_lines}p")"
+  [[ -n "$content" ]] || return 1
+  printf '%s\n' "$content"
+}
+
+render_command_index() {
+  local file="$1"
+
+  grep -Eo '`(ai-memory[^`]*)`' "$file" | sed 's/^`//; s/`$//' | awk '!seen[$0]++' | sed -n '1,6p' | sed 's/^/- /'
+}
+
 write_copilot_project_summary() {
   local project_name="$1"
   local target_file="$2"
   local source_file
   local repo_root="$(pwd -P)"
-  local max_lines=140
-  local total_lines=0
   local source_label="runtime memory"
+  local description
+  local purpose_excerpt
+  local architecture_excerpt
+  local capabilities_excerpt
+  local notes_excerpt
+  local command_index
 
   source_file="$(resolve_project_source_file "$project_name" "$repo_root")" || return 1
   if [[ "$source_file" != "$ROOT/projects/$project_name.md" ]]; then
     source_label="repo-local fallback"
   fi
 
-  total_lines="$(wc -l < "$source_file" | tr -d ' ')"
+  description="$(project_description "$source_file")"
+  purpose_excerpt="$(render_section_excerpt "$source_file" "Purpose" 3 || true)"
+  architecture_excerpt="$(render_section_excerpt "$source_file" "Architecture" 5 || true)"
+  capabilities_excerpt="$(render_section_excerpt "$source_file" "Key Capabilities" 5 || true)"
+  notes_excerpt="$(render_section_excerpt "$source_file" "Notes" 4 || true)"
+  command_index="$(render_command_index "$source_file")"
 
   cat > "$target_file" << TEMPLATE_END
 # Project Memory Snapshot
@@ -278,26 +318,40 @@ Project: $project_name
 Generated at: $(date '+%Y-%m-%d %H:%M:%S')
 Source layer: $source_label
 
-Source of truth guidance:
-- Prefer \`ai-memory context\` and \`ai-memory project $project_name\` when runtime memory exists.
-- This snapshot may use repo-local project memory when global runtime memory is not yet populated.
+Use runtime memory when available:
+- \`ai-memory context\`
+- \`ai-memory project $project_name\`
 
 ## Quick Facts
 
 - Name: $project_name
-- Description: $(project_description "$source_file")
+- Description: $description
 - GitHub: $(project_github "$source_file")
+- Source file: $(basename "$source_file")
 
-## Project Snapshot (first $max_lines lines)
+## Semantic Index
+
+### Purpose
+
+${purpose_excerpt:-No purpose summary available.}
+
+### Architecture
+
+${architecture_excerpt:-No architecture summary available.}
+
+### Key Capabilities
+
+${capabilities_excerpt:-No capability summary available.}
+
+### Commands To Know
+
+${command_index:-- No command references found.}
+
+### Notes
+
+${notes_excerpt:-No extra notes available.}
 
 TEMPLATE_END
-
-  sed -n "1,${max_lines}p" "$source_file" >> "$target_file"
-
-  if (( total_lines > max_lines )); then
-    echo >> "$target_file"
-    echo "(truncated from ${total_lines} lines; run 'ai-memory project $project_name' for full details)" >> "$target_file"
-  fi
 }
 
 print_generated_file_stats() {

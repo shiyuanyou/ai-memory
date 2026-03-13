@@ -4,7 +4,7 @@ Description: Lightweight developer-memory layer for AI coding workflows.
 
 ## Purpose
 
-Provide a minimal, cross-tool memory layer so AI agents can retrieve persistent developer context without relying on large static instruction snapshots.
+Provide a cross-tool memory layer so AI agents can retrieve persistent developer context without large static snapshots.
 
 ## Architecture
 
@@ -23,4 +23,4 @@ Provide a minimal, cross-tool memory layer so AI agents can retrieve persistent 
 ## Notes
 
 - Prefer runtime memory over this file when both are available.
-- This file exists as a repo-local fallback for project and hybrid inject modes.
+- Repo-local fallback for project and hybrid inject modes.

@@ -12,24 +12,18 @@ if [[ ! -f "$suite_file" ]]; then
 fi
 
 if [[ ! -f "$results_file" ]]; then
-  cat > "$results_file" <<'TEMPLATE_END'
-{
-  "results": [
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "Error: jq is required to generate result template."
+    exit 1
+  fi
+  jq -n --slurpfile suite "$suite_file" '
     {
-      "id": "intro-project",
-      "mode": "new_window",
-      "passed": false,
-      "notes": ""
-    },
-    {
-      "id": "intro-project",
-      "mode": "subagent",
-      "passed": false,
-      "notes": ""
+      results: [
+        ($suite[0].evals[] | {id: .id, mode: "new_window", passed: false, notes: ""}),
+        ($suite[0].evals[] | {id: .id, mode: "subagent", passed: false, notes: ""})
+      ]
     }
-  ]
-}
-TEMPLATE_END
+  ' > "$results_file"
   echo "Created result template: $results_file"
   echo "Fill it with observed pass/fail values, then rerun this script."
   exit 0

@@ -42,6 +42,10 @@ Pass criteria:
 - Example results: `evals/skills-routing-results.example.json`
 - Score script: `lib/score-routing-evals.sh`
 
+Notes:
+- If no result file exists, the score script will generate a full template from the prompt suite.
+- In hybrid mode, `.github/copilot-project-summary.md` should be a semantic index, not a long raw snapshot.
+
 ## Suggested Thresholds
 - New window hit rate >= 0.80
 - Subagent hit rate >= 0.85

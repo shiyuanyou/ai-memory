@@ -17,6 +17,12 @@
       "mode": "new_window",
       "passed": false,
       "notes": "没有明确说出 token 与 stale tradeoff。"
+    },
+    {
+      "id": "repo-entrypoints",
+      "mode": "subagent",
+      "passed": true,
+      "notes": "先读取了 project-context skill，再指向 core-idea 和 ai-memory。"
     }
   ]
 }

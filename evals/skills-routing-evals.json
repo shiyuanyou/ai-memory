@@ -50,6 +50,51 @@
         "Mentions instructions vs skills split",
         "Provides bounded optimization advice"
       ]
+    },
+    {
+      "id": "project-vs-skill",
+      "prompt": "为什么要把 memory 设计成 skills 按需加载，而不是全塞进 instructions?",
+      "expected": [
+        "Explains on-demand loading rationale",
+        "Mentions token and routing tradeoff",
+        "Keeps project facts separate from main instructions"
+      ]
+    },
+    {
+      "id": "repo-entrypoints",
+      "prompt": "这个仓库我应该先看哪些文件？",
+      "expected": [
+        "Mentions minimal entrypoint files",
+        "Uses project-context routing",
+        "Avoids broad repository dump"
+      ]
+    },
+    {
+      "id": "hybrid-usage",
+      "prompt": "什么时候应该用 inject --scope hybrid？",
+      "expected": [
+        "Explains hybrid usage boundary",
+        "Mentions project-heavy sessions",
+        "Contrasts with global mode"
+      ]
+    },
+    {
+      "id": "project-resolution",
+      "prompt": "为什么 hybrid 有时会回退到 global？",
+      "expected": [
+        "Mentions project resolution priority",
+        "Mentions runtime/global memory missing case",
+        "Gives concrete mitigation"
+      ]
+    },
+    {
+      "id": "repo-local-fallback",
+      "prompt": "repo-local project memory 的作用是什么？",
+      "expected": [
+        "Explains fallback role",
+        "Explains relation to ~/.memory/projects",
+        "Keeps runtime source-of-truth distinction"
+      ]
     }
   ]
 }
