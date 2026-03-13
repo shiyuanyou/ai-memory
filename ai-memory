@@ -2,6 +2,34 @@
 
 ROOT="$HOME/.memory"
 
+_llm_call() {
+  local system="$1" prompt="$2"
+  local config="$ROOT/.llm-config"
+  local url model key_env api_key
+
+  url="$(grep '^LLM_URL=' "$config" 2>/dev/null | cut -d= -f2-)"
+  model="$(grep '^LLM_MODEL=' "$config" 2>/dev/null | cut -d= -f2-)"
+  key_env="$(grep '^LLM_KEY_ENV=' "$config" 2>/dev/null | cut -d= -f2-)"
+
+  url="${url:-https://api.openai.com/v1/chat/completions}"
+  model="${model:-gpt-4o-mini}"
+  key_env="${key_env:-OPENAI_API_KEY}"
+  api_key="${!key_env}"
+
+  if [[ -z "$api_key" ]]; then
+    echo "Error: \$$key_env is not set." >&2
+    echo "  Run: ai-memory config set LLM_KEY_ENV=YOUR_KEY_VAR_NAME" >&2
+    return 1
+  fi
+
+  curl -sf "$url" \
+    -H "Authorization: Bearer $api_key" \
+    -H "Content-Type: application/json" \
+    -d "$(jq -n --arg m "$model" --arg s "$system" --arg u "$prompt" \
+      '{model:$m,messages:[{role:"system",content:$s},{role:"user",content:$u}]}')" \
+  | jq -r '.choices[0].message.content'
+}
+
 cmd="$1"
 
 case "$cmd" in
@@ -184,6 +212,110 @@ TEMPLATE_END
   esac
   ;;
 
+config)
+  config_file="$ROOT/.llm-config"
+  case "$2" in
+  show)
+    if [[ -f "$config_file" ]]; then
+      cat "$config_file"
+    else
+      echo "(no config — defaults in effect)"
+      echo "LLM_URL=https://api.openai.com/v1/chat/completions"
+      echo "LLM_MODEL=gpt-4o-mini"
+      echo "LLM_KEY_ENV=OPENAI_API_KEY"
+    fi
+    ;;
+  set)
+    mkdir -p "$ROOT"
+    shift 2
+    for pair in "$@"; do
+      key="${pair%%=*}"
+      val="${pair#*=}"
+      if grep -q "^${key}=" "$config_file" 2>/dev/null; then
+        sed -i '' "s|^${key}=.*|${key}=${val}|" "$config_file"
+      else
+        echo "${key}=${val}" >> "$config_file"
+      fi
+    done
+    echo "Config updated: $config_file"
+    ;;
+  *)
+    echo "Usage: ai-memory config show"
+    echo "       ai-memory config set LLM_URL=... LLM_MODEL=... LLM_KEY_ENV=..."
+    echo ""
+    echo "Examples:"
+    echo "  ai-memory config set LLM_KEY_ENV=DEEPSEEK_API_KEY LLM_URL=https://api.deepseek.com/v1/chat/completions LLM_MODEL=deepseek-chat"
+    echo "  ai-memory config set LLM_KEY_ENV=ANTHROPIC_API_KEY LLM_URL=https://api.anthropic.com/v1/chat/completions LLM_MODEL=claude-3-5-haiku-20241022"
+    ;;
+  esac
+  ;;
+
+learn)
+  if [[ -n "$2" && "$2" != "-" ]]; then
+    [[ ! -f "$2" ]] && echo "Error: file not found: $2" >&2 && exit 1
+    input="$(cat "$2")"
+  else
+    input="$(cat)"
+  fi
+
+  current="$(cat "$ROOT/profile.md" 2>/dev/null)
+
+$(cat "$ROOT/preferences.md" 2>/dev/null)
+
+$(cat "$ROOT/infra.md" 2>/dev/null)"
+
+  system='You are a developer memory manager. Extract facts worth remembering from the new information provided.
+Output ONLY valid JSON (no markdown fences, no explanation):
+{
+  "updates": [
+    {"file": "profile.md", "action": "append", "content": "..."}
+  ]
+}
+Supported files: profile.md, preferences.md, infra.md, projects/<name>.md
+Actions: "append" adds text to end of file. "replace" rewrites the full file.
+Skip trivial or already-known facts. Be concise. If nothing is worth remembering, return {"updates":[]}'
+
+  user="Current memory:
+${current}
+
+New information to learn:
+${input}"
+
+  echo "Analyzing..." >&2
+  response="$(_llm_call "$system" "$user")" || exit 1
+
+  # Strip markdown code fences if model wraps response
+  response="$(printf '%s' "$response" | sed '/^```/d')"
+
+  n="$(jq '.updates | length' <<< "$response" 2>/dev/null)"
+  if [[ -z "$n" || "$n" == "0" || "$n" == "null" ]]; then
+    echo "Nothing new to remember."
+    exit 0
+  fi
+
+  for i in $(seq 0 $((n - 1))); do
+    file="$(jq -r ".updates[$i].file" <<< "$response")"
+    action="$(jq -r ".updates[$i].action" <<< "$response")"
+    content="$(jq -r ".updates[$i].content" <<< "$response")"
+    target="$ROOT/$file"
+    mkdir -p "$(dirname "$target")"
+    case "$action" in
+    append)
+      printf '\n%s\n' "$content" >> "$target"
+      echo "  appended → $file"
+      ;;
+    replace)
+      printf '%s\n' "$content" > "$target"
+      echo "  replaced → $file"
+      ;;
+    *)
+      echo "  unknown action '$action' for $file — skipped"
+      ;;
+    esac
+  done
+  echo "Memory updated."
+  ;;
+
 *)
   echo "memory commands:"
   echo "  memory context"
@@ -193,5 +325,8 @@ TEMPLATE_END
   echo "  memory new-project <name>"
   echo "  memory search <keyword>"
   echo "  memory inject <tool>    (claude | opencode | codex)"
+  echo "  memory config show"
+  echo "  memory config set LLM_URL=... LLM_MODEL=... LLM_KEY_ENV=..."
+  echo "  memory learn [<file>|-]  (use - or omit for stdin)"
   ;;
 esac
