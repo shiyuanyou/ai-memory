@@ -29,7 +29,7 @@ Design Principles
 
 Minimal Architecture
 
-memory (CLI)
+ai-memory (CLI)
 → reads developer knowledge files
 → outputs structured text context for AI
 
@@ -43,16 +43,16 @@ projects/ <project>.md
 
 Core Commands
 
-memory context
+ai-memory context
 return developer profile + preferences + infra + project summaries
 
-memory projects
+ai-memory projects
 list existing projects
 
-memory project <name>
+ai-memory project <name>
 show project description and capabilities
 
-memory search <keyword>
+ai-memory search <keyword>
 search developer knowledge
 
 Purpose of Each Data Type
@@ -74,9 +74,9 @@ Usage in AI Coding Workflow
 
 Before planning solutions, AI should read developer memory:
 
-memory context
+ai-memory context
 
-Use memory project <name> when full project details are needed.
+Use ai-memory project <name> when full project details are needed.
 
 Then incorporate this information when proposing architectures or tools.
 
@@ -92,7 +92,7 @@ Data Model Rule
 
 - `profile.md`, `preferences.md`, and `infra.md` store developer-wide facts only.
 - `projects/*.md` stores all project-specific facts, status, capabilities, and roadmaps.
-- `memory context` is the default AI entrypoint and should aggregate both layers.
+- `ai-memory context` is the default AI entrypoint and should aggregate both layers.
 
 3. Cross-tool interoperability
    Provide a universal CLI interface so any AI tool can consume the same developer memory.
@@ -111,6 +111,6 @@ AI reasoning layer
 ↓
 agent runtime / tools
 
-memory → who the developer is
+ai-memory → who the developer is
 AI → reasoning and planning
 agents/tools → execution
