@@ -19,11 +19,67 @@ infra)
   ;;
 
 projects)
-  ls $ROOT/projects | sed 's/.md//'
+  for f in "$ROOT/projects/"*.md; do
+    name="$(basename "$f" .md)"
+    desc="$(grep -m1 '^Description:' "$f" 2>/dev/null | sed 's/^Description: *//' )"
+    github="$(grep -m1 '^GitHub:' "$f" 2>/dev/null | sed 's/^GitHub: *//')"
+    if [[ -n "$desc" ]]; then
+      printf "%-20s %s" "$name" "$desc"
+      [[ -n "$github" ]] && printf "  (%s)" "$github"
+      echo
+    else
+      echo "$name"
+    fi
+  done
   ;;
 
 project)
-  cat $ROOT/projects/$2.md
+  cat "$ROOT/projects/$2.md"
+  ;;
+
+new-project)
+  name="$2"
+  if [[ -z "$name" ]]; then
+    echo "Usage: ai-memory new-project <name>"
+    exit 1
+  fi
+  target="$ROOT/projects/$name.md"
+  if [[ -f "$target" ]]; then
+    echo "Project '$name' already exists: $target"
+    exit 1
+  fi
+  mkdir -p "$ROOT/projects"
+  cat > "$target" << TEMPLATE_END
+# $name
+
+Description: <one-line summary of what this project does>
+
+GitHub: https://github.com/<owner>/$name
+Directory: ~/<path/to/$name>
+
+## Purpose
+
+<What problem does this project solve? Why does it exist?>
+
+## How to Reference
+
+<How should an AI use or invoke this project? e.g. CLI command, API, library import>
+
+## Key Capabilities
+
+- <capability 1>
+- <capability 2>
+
+## Tech Stack
+
+- <language / framework>
+
+## Notes
+
+<Any caveats, known issues, or tips for AI agents>
+TEMPLATE_END
+  echo "Created: $target"
+  echo "Edit the file to fill in project details."
   ;;
 
 search)
@@ -134,6 +190,7 @@ TEMPLATE_END
   echo "  memory infra"
   echo "  memory projects"
   echo "  memory project <name>"
+  echo "  memory new-project <name>"
   echo "  memory search <keyword>"
   echo "  memory inject <tool>    (claude | opencode | codex)"
   ;;
