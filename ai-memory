@@ -4,6 +4,23 @@ ROOT="$HOME/.memory"
 
 shopt -s nullglob
 
+resolve_script_dir() {
+  local source_path="${BASH_SOURCE[0]}"
+  local dir_path
+
+  if [[ "$source_path" != */* ]]; then
+    source_path="$(command -v "$source_path")"
+  fi
+
+  while [[ -L "$source_path" ]]; do
+    dir_path="$(cd -P "$(dirname "$source_path")" && pwd)"
+    source_path="$(readlink "$source_path")"
+    [[ "$source_path" == /* ]] || source_path="$dir_path/$source_path"
+  done
+
+  cd -P "$(dirname "$source_path")" && pwd
+}
+
 render_base_context() {
   cat "$ROOT/profile.md" 2>/dev/null
   echo
@@ -444,7 +461,7 @@ install_default_skills_pack() {
   local skill_name
   local copied=0
 
-  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  script_dir="$(resolve_script_dir)"
   src_root="$script_dir/.github/skills"
   dst_root="$repo_root/.github/skills"
 
@@ -518,7 +535,7 @@ set_config_kv() {
 load_learn_modules() {
   local script_dir llm_module learn_module
 
-  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  script_dir="$(resolve_script_dir)"
   llm_module="$script_dir/lib/llm.sh"
   learn_module="$script_dir/lib/learn.sh"
 
