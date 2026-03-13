@@ -80,6 +80,21 @@ Use ai-memory project <name> when full project details are needed.
 
 Then incorporate this information when proposing architectures or tools.
 
+VS Code Injection Strategy (Hybrid)
+
+To balance first-turn understanding and token cost, use layered injection for VS Code Copilot:
+
+- `ai-memory inject vs-code --scope global`
+   Generate a lightweight `.github/copilot-instructions.md` that points AI to runtime commands.
+- `ai-memory inject vs-code --scope project [--project <name>]`
+   Generate the main instructions plus `.github/copilot-project-summary.md` for the current project snapshot.
+- `ai-memory inject vs-code --scope hybrid [--project <name>]`
+   Same as project mode, and append a small multi-project quick index for fast routing.
+
+Rule:
+- Keep `.github/copilot-instructions.md` as orchestration and retrieval guidance, not a full static memory dump.
+- Runtime memory (`ai-memory context` and `ai-memory project <name>`) remains the source of truth.
+
 Optimization Direction
 
 1. Capability awareness

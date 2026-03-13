@@ -4,6 +4,7 @@ run_learn() {
   local dry_run=0
   local input_arg="$1"
   local input current system_prompt user_prompt response n i file action content target
+  local config_file auto_inject
 
   if ! require_command curl; then
     echo "Error: curl is required for 'ai-memory learn'." >&2
@@ -126,5 +127,23 @@ ${input}"
   done
 
   echo "Memory updated."
+
+  config_file="$ROOT/.llm-config"
+  auto_inject=""
+  if [[ -f "$config_file" ]]; then
+    auto_inject="$(grep -m1 '^AUTO_INJECT_VSCODE=' "$config_file" 2>/dev/null | sed 's/^AUTO_INJECT_VSCODE=//')"
+  fi
+
+  if [[ "$auto_inject" =~ ^(1|true|TRUE|yes|YES)$ ]]; then
+    echo "AUTO_INJECT_VSCODE enabled: refreshing Copilot instructions (hybrid mode)..."
+    if "$0" inject vs-code --scope hybrid >/dev/null 2>&1; then
+      echo "Copilot instructions refreshed."
+    else
+      echo "Warning: auto refresh failed. Run: ai-memory inject vs-code --scope hybrid" >&2
+    fi
+  else
+    echo "Tip: run 'ai-memory inject vs-code --scope hybrid' in your workspace to refresh Copilot context."
+  fi
+
   return 0
 }

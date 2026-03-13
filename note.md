@@ -33,9 +33,14 @@
 - [x] VS Code 动态注入支持（`ai-memory inject vs-code` 生成 `.github/copilot-instructions.md`）
 - [x] learn 模块化重构（主脚本分发，`lib/llm.sh` + `lib/learn.sh`）
 - [x] projects 摘要解析可维护化（`project_description` 线性化简化）
+- [x] VS Code 注入分层改造（`inject vs-code --scope global|project|hybrid`）
+- [x] 项目摘要文件输出（`.github/copilot-project-summary.md`，按需生成）
+- [x] 注入产物体积与 token 估算输出（便于持续优化）
+- [x] learn 后可选自动刷新注入（`AUTO_INJECT_VSCODE=1`）
 
 ## 下一步
 
 - 补齐旧项目文件的头部元数据 (`Description` / `GitHub` / `Directory`)
 - 增加可重复的 smoke 测试脚本（语法 + 命令回归 + 错误路径）
 - 优化 learn 的 dry-run 预览展示（当前仅动作级提示，可增强为内容 diff）
+- 增加注入模式 A/B 评估（首轮理解率 vs token 成本）
