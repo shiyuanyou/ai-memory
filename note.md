@@ -46,6 +46,11 @@
 - [x] 项目解析优先级增强（env + repo mapping file + 目录回退）
 - [x] 命中率提示集扩展到 10 条真实任务
 - [x] Project summary 从正文快照改为结构化语义索引
+- [x] VS Code 首轮检索预算化（budget-first + stop conditions）
+- [x] 路径展开修复（`~/...` 匹配）避免目录映射失效
+- [x] 仓库映射修正（`.ai-memory-project` 指向 `ai-memory`）
+- [x] 一键初始化命令（`ai-memory setup <tool> [--project <name>]`）
+- [x] OpenCode 注入双目标输出（`AGENTS.md` + `.opencode/instructions.md`）
 
 ## 下一步
 
@@ -55,3 +60,4 @@
 - 增加注入模式 A/B 评估（首轮理解率 vs token 成本）
 - 在新窗口和 sub agent 场景跑命中率评估并固化阈值
 - 增加新窗口与 sub agent 命中率基线测试集（用于验证 skills 触发效果）
+- 统一 opencode/claude/codex 注入为 `--scope global|project|hybrid`（对齐 vs-code）
